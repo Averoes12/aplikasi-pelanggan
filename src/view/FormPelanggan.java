@@ -23,16 +23,41 @@ public class FormPelanggan extends javax.swing.JFrame {
     }
 
     private void focusId() {
-        txtId.requestFocus();
+        txtNm.requestFocus();
     }
 
     private void clear() {
-        txtId.setText("");
+        generateId();
         txtNm.setText("");
         txtTlp.setText("");
         txtAdress.setText("");
         txtCari.setText("");
         gender.clearSelection();
+    }
+
+    private void generateId() {
+        txtId.setText(nextCode("pelanggan", "id", "ID"));
+    }
+
+    private String nextCode(String tableName, String columnName, String prefix) {
+        if (conn == null) {
+            return prefix + "001";
+        }
+
+        String sql = "SELECT MAX(" + columnName + ") AS kode FROM " + tableName;
+        try (PreparedStatement stat = conn.prepareStatement(sql);
+             ResultSet hasil = stat.executeQuery()) {
+            if (hasil.next()) {
+                String lastCode = hasil.getString("kode");
+                if (lastCode != null && lastCode.startsWith(prefix) && lastCode.length() >= prefix.length() + 3) {
+                    int number = Integer.parseInt(lastCode.substring(prefix.length())) + 1;
+                    return String.format("%s%03d", prefix, number);
+                }
+            }
+        } catch (SQLException | NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Kode otomatis gagal dibuat: " + e.getMessage());
+        }
+        return prefix + "001";
     }
 
     private void dataTable() {
@@ -150,15 +175,21 @@ public class FormPelanggan extends javax.swing.JFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Form Pelanggan");
 
-        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 18));
+        lblTitle.setFont(new java.awt.Font("Segoe UI", 1, 18)); // NOI18N
         lblTitle.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblTitle.setText("Data Pelanggan");
 
         lblId.setText("ID Pelanggan");
+
         lblNama.setText("Nama Pelanggan");
+
         lblJenis.setText("Jenis Kelamin");
+
         lblTelepon.setText("No. Telepon");
+
         lblAlamat.setText("Alamat");
+
+        txtId.setEditable(false);
 
         gender.add(rbL);
         rbL.setText("Laki-Laki");
@@ -221,7 +252,9 @@ public class FormPelanggan extends javax.swing.JFrame {
         });
 
         tblPlg.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {},
+            new Object [][] {
+
+            },
             new String [] {
                 "ID Pelanggan", "Nama", "Jenis Kelamin", "No. Telepon", "Alamat"
             }
@@ -243,7 +276,7 @@ public class FormPelanggan extends javax.swing.JFrame {
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 568, Short.MAX_VALUE)
                     .addGroup(panelDataLayout.createSequentialGroup()
                         .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnCari)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -255,7 +288,7 @@ public class FormPelanggan extends javax.swing.JFrame {
                 .addGroup(panelDataLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCari))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -267,7 +300,7 @@ public class FormPelanggan extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(24, 24, 24)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(lblTitle, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(lblTitle, javax.swing.GroupLayout.DEFAULT_SIZE, 592, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(lblId)
@@ -277,26 +310,26 @@ public class FormPelanggan extends javax.swing.JFrame {
                             .addComponent(lblAlamat))
                         .addGap(29, 29, 29)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtId)
+                            .addComponent(txtId, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
                             .addComponent(txtNm)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(rbL)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(rbP))
                             .addComponent(txtTlp)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnSimpan)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnUbah)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnHapus)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnBatal)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnKeluar))
                     .addComponent(panelData, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addContainerGap(24, Short.MAX_VALUE))
+                .addGap(24, 24, 24))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -333,7 +366,7 @@ public class FormPelanggan extends javax.swing.JFrame {
                     .addComponent(btnKeluar))
                 .addGap(18, 18, 18)
                 .addComponent(panelData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(18, Short.MAX_VALUE))
+                .addGap(18, 18, Short.MAX_VALUE))
         );
 
         pack();
