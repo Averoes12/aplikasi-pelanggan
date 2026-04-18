@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 
@@ -13,8 +15,10 @@ public class FormBarang extends javax.swing.JFrame {
 
     private final Connection conn = new DBConnection().connect();
     private DefaultTableModel tableModel;
+    private int _idJenisBarang;
+    List<String> _valJenisBarang = new ArrayList<>();
 
-    public FormBarang() {
+    public FormBarang() {        
         initComponents();
         clear();
         focusForm();
@@ -31,8 +35,9 @@ public class FormBarang extends javax.swing.JFrame {
         txtNmBrg.setText("");
         txtHargaJual.setText("");
         txtHargaBeli.setText("");
-        txtCari.setText("");
-        jenisGroup.clearSelection();
+        txtCari.setText("");    
+        jenisBarang.setSelectedIndex(0);
+        _valJenisBarang.clear();
     }
 
     private void generateKodeBarang() {
@@ -63,7 +68,7 @@ public class FormBarang extends javax.swing.JFrame {
     private boolean isInputValid() {
         if (txtKdBrg.getText().trim().isEmpty()
                 || txtNmBrg.getText().trim().isEmpty()
-                || selectedJenis().isEmpty()
+                || _idJenisBarang == 0
                 || txtHargaJual.getText().trim().isEmpty()
                 || txtHargaBeli.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua data barang harus diisi.");
@@ -73,23 +78,17 @@ public class FormBarang extends javax.swing.JFrame {
     }
 
     private String selectedJenis() {
-        if (rbMakanan.isSelected()) {
-            return "Makanan";
-        }
-        if (rbMinuman.isSelected()) {
-            return "Minuman";
-        }
-        return "";
+        int id = jenisBarang.getSelectedIndex();   
+        String val = jenisBarang.getItemAt(id);
+        _idJenisBarang = id;
+        String fmtJenisBarang = id + "_" + val;
+        return fmtJenisBarang;
     }
 
     private void setSelectedJenis(String jenis) {
-        if ("Makanan".equalsIgnoreCase(jenis)) {
-            rbMakanan.setSelected(true);
-        } else if ("Minuman".equalsIgnoreCase(jenis)) {
-            rbMinuman.setSelected(true);
-        } else {
-            jenisGroup.clearSelection();
-        }
+        System.out.println(jenis);
+        int id = Integer.parseInt(jenis.split("_")[0]);        
+        jenisBarang.setSelectedIndex(id);               
     }
 
     private void onlyNumber(java.awt.event.KeyEvent evt) {
@@ -120,12 +119,14 @@ public class FormBarang extends javax.swing.JFrame {
             stat.setString(1, keyword);
             stat.setString(2, keyword);
 
-            try (ResultSet hasil = stat.executeQuery()) {
-                while (hasil.next()) {
+            try (ResultSet hasil = stat.executeQuery()) {                
+                while (hasil.next()) {                    
+                    String jenis = hasil.getString("jenis").split("_")[1];                    
+                    _valJenisBarang.add(hasil.getString("jenis"));
                     tableModel.addRow(new Object[]{
                         hasil.getString("kd_brg"),
                         hasil.getString("nm_brg"),
-                        hasil.getString("jenis"),
+                        jenis,
                         hasil.getString("hargajual"),
                         hasil.getString("hargabeli")
                     });
@@ -146,7 +147,6 @@ public class FormBarang extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jenisGroup = new javax.swing.ButtonGroup();
         lblTitle = new javax.swing.JLabel();
         lblKode = new javax.swing.JLabel();
         lblNama = new javax.swing.JLabel();
@@ -155,8 +155,6 @@ public class FormBarang extends javax.swing.JFrame {
         lblHargaBeli = new javax.swing.JLabel();
         txtKdBrg = new javax.swing.JTextField();
         txtNmBrg = new javax.swing.JTextField();
-        rbMakanan = new javax.swing.JRadioButton();
-        rbMinuman = new javax.swing.JRadioButton();
         txtHargaJual = new javax.swing.JTextField();
         txtHargaBeli = new javax.swing.JTextField();
         btnSimpan = new javax.swing.JButton();
@@ -169,6 +167,7 @@ public class FormBarang extends javax.swing.JFrame {
         btnCari = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblBrg = new javax.swing.JTable();
+        jenisBarang = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Form Barang");
@@ -188,12 +187,6 @@ public class FormBarang extends javax.swing.JFrame {
         lblHargaBeli.setText("Harga Beli");
 
         txtKdBrg.setEditable(false);
-
-        jenisGroup.add(rbMakanan);
-        rbMakanan.setText("Makanan");
-
-        jenisGroup.add(rbMinuman);
-        rbMinuman.setText("Minuman");
 
         txtHargaJual.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
@@ -299,6 +292,18 @@ public class FormBarang extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        jenisBarang.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-- Pilih Jenis Barang --", "Makanan", "Minuman" }));
+        jenisBarang.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                jenisBarangItemStateChanged(evt);
+            }
+        });
+        jenisBarang.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jenisBarangActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -318,12 +323,9 @@ public class FormBarang extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(txtKdBrg, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
                             .addComponent(txtNmBrg)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(rbMakanan)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(rbMinuman))
                             .addComponent(txtHargaJual)
-                            .addComponent(txtHargaBeli)))
+                            .addComponent(txtHargaBeli)
+                            .addComponent(jenisBarang, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(btnSimpan)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -353,8 +355,7 @@ public class FormBarang extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblJenis)
-                    .addComponent(rbMakanan)
-                    .addComponent(rbMinuman))
+                    .addComponent(jenisBarang, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblHargaJual)
@@ -372,7 +373,7 @@ public class FormBarang extends javax.swing.JFrame {
                     .addComponent(btnKeluar))
                 .addGap(18, 18, 18)
                 .addComponent(panelData, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, Short.MAX_VALUE))
+                .addGap(22, 22, Short.MAX_VALUE))
         );
 
         pack();
@@ -494,16 +495,25 @@ public class FormBarang extends javax.swing.JFrame {
 
     private void tblBrgMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblBrgMouseClicked
         int row = tblBrg.getSelectedRow();
+        System.out.println("ROW " + row);
         if (row < 0) {
             return;
         }
 
         txtKdBrg.setText(tableModel.getValueAt(row, 0).toString());
         txtNmBrg.setText(tableModel.getValueAt(row, 1).toString());
-        setSelectedJenis(tableModel.getValueAt(row, 2).toString());
+        setSelectedJenis(_valJenisBarang.get(row));
         txtHargaJual.setText(tableModel.getValueAt(row, 3).toString());
         txtHargaBeli.setText(tableModel.getValueAt(row, 4).toString());
     }//GEN-LAST:event_tblBrgMouseClicked
+
+    private void jenisBarangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jenisBarangActionPerformed
+    }//GEN-LAST:event_jenisBarangActionPerformed
+
+    private void jenisBarangItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jenisBarangItemStateChanged
+       
+        selectedJenis();
+    }//GEN-LAST:event_jenisBarangItemStateChanged
 
     public static void main(String args[]) {
         try {
@@ -528,7 +538,7 @@ public class FormBarang extends javax.swing.JFrame {
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnUbah;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.ButtonGroup jenisGroup;
+    private javax.swing.JComboBox<String> jenisBarang;
     private javax.swing.JLabel lblHargaBeli;
     private javax.swing.JLabel lblHargaJual;
     private javax.swing.JLabel lblJenis;
@@ -536,8 +546,6 @@ public class FormBarang extends javax.swing.JFrame {
     private javax.swing.JLabel lblNama;
     private javax.swing.JLabel lblTitle;
     private javax.swing.JPanel panelData;
-    private javax.swing.JRadioButton rbMakanan;
-    private javax.swing.JRadioButton rbMinuman;
     private javax.swing.JTable tblBrg;
     private javax.swing.JTextField txtCari;
     private javax.swing.JTextField txtHargaBeli;
